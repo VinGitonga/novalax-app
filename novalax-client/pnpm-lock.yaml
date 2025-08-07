@@ -20,6 +20,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.1
         version: 5.2.1(react-hook-form@7.62.0(react@19.1.1))
+      '@internationalized/date':
+        specifier: ^3.8.2
+        version: 3.8.2
       '@reown/appkit':
         specifier: ^1.7.16
         version: 1.7.18(@types/react@19.1.9)(bufferutil@4.0.9)(lit@3.3.0)(react@19.1.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.0.15)
