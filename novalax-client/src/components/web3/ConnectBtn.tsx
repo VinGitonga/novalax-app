@@ -22,13 +22,13 @@ const ConnectBtn = ({ onDisconnect }: ConnectBtnProps) => {
 	};
 
 	return (
-		<div>
-			<div className="appkit-buttons">
+		<div className="text-white!">
+			<div className="appkit-buttons flex items-center gap-2">
 				<appkit-button />
 				{isConnected && (
 					<>
 						<appkit-network-button />
-						<Button color="secondary" onPress={handleDisconnect}></Button>
+						<Button color="secondary" onPress={handleDisconnect}>Disconnect</Button>
 					</>
 				)}
 			</div>

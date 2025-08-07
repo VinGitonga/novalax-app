@@ -41,7 +41,7 @@ const LandingPage = () => {
 					<Link to={"/"}>
 						<Img src="/images/logo2.png" className="w-20" width={100} height={100} alt="Logo" />
 					</Link>
-					<h1 className="text-5xl font-bold">Novix Pay</h1>
+					<h1 className="text-5xl font-bold">Novalax</h1>
 				</div>
 				<div className="flex items-center gap-4">
 					<HomeLink href="/" isActive text="Home" />
@@ -82,7 +82,7 @@ const LandingPage = () => {
 				</div>
 				<div className="w-full relative z-20">
 					<div className="text-center space-y-4">
-						<h1 className="text-4xl font-semibold">Why Choose Novix Pay?</h1>
+						<h1 className="text-4xl font-semibold">Why Choose Novalax?</h1>
 						<p className="text-lg px-10">
 							We believe on-chain payments should be frictionless, not frustrating. We've built a platform that simplifies payments, so you can focus on building the future of the decentralized web.
 						</p>
@@ -136,10 +136,10 @@ const LandingPage = () => {
 						<Link to={"/"}>
 							<Img src="/images/logo2.png" className="w-12" width={100} height={100} alt="Logo" />
 						</Link>
-						<h1 className="text-3xl font-bold">Novix Pay</h1>
+						<h1 className="text-3xl font-bold">Novalax</h1>
 					</div>
 					{/* <Img src="/images/logo.png" className="w-32" width={100} height={50} alt="Logo" /> */}
-					<p>&copy; 2025 Novix Pay. All Rights Reserved. </p>
+					<p>&copy; 2025 Novalax. All Rights Reserved. </p>
 					<CiGlobe className="w-6 h-6" />
 				</div>
 			</div>
