@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { WALLET_PRIVATE_KEY } from "src/constants";
-import { createPublicClient, createWalletClient, defineChain, http, publicActions } from "viem";
+import { createPublicClient, createWalletClient, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { PaymentPayload, PaymentPayloadSchema, PaymentRequirements, PaymentRequirementsSchema } from "x402/types";
 import { settle, verify } from "x402/facilitator";
