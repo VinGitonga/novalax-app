@@ -18,6 +18,7 @@ export const SupportedEVMNetworks: Network[] = [
   "avalanche",
   "iotex",
   "etherlink-testnet",
+  "hedera-testnet",
 ];
 export const EvmNetworkToChainId = new Map<Network, number>([
   ["base-sepolia", 84532],

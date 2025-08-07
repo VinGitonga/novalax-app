@@ -147,7 +147,10 @@ export function paymentMiddleware(
               typeof getPaywallHtml
             >[0]["paymentRequirements"],
             currentUrl: req.originalUrl,
-            testnet: network === "base-sepolia" || network === "etherlink-testnet",
+            testnet:
+              network === "base-sepolia" ||
+              network === "etherlink-testnet" ||
+              network === "hedera-testnet",
             cdpClientKey: paywall?.cdpClientKey,
             appName: paywall?.appName,
             appLogo: paywall?.appLogo,

@@ -7,6 +7,7 @@ export const NetworkSchema = z.enum([
   "avalanche",
   "iotex",
   "etherlink-testnet",
+  "hedera-testnet",
 ]);
 export type Network = z.infer<typeof NetworkSchema>;
 
@@ -17,6 +18,7 @@ export const SupportedEVMNetworks: Network[] = [
   "avalanche",
   "iotex",
   "etherlink-testnet",
+  "hedera-testnet",
 ];
 export const EvmNetworkToChainId = new Map<Network, number>([
   ["base-sepolia", 84532],
@@ -25,6 +27,7 @@ export const EvmNetworkToChainId = new Map<Network, number>([
   ["avalanche", 43114],
   ["iotex", 4689],
   ["etherlink-testnet", 128123],
+  ["hedera-testnet", 296],
 ]);
 
 export const ChainIdToNetwork = Object.fromEntries(

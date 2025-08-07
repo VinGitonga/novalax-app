@@ -10,7 +10,7 @@ import {
 } from "@coinbase/onchainkit/wallet";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPublicClient, formatUnits, http, publicActions } from "viem";
-import { etherlinkTestnet } from "viem/chains";
+import { hederaTestnet } from "viem/chains";
 import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 
 import { selectPaymentRequirements } from "../../client";
@@ -42,11 +42,11 @@ export function PaywallApp() {
   const amount = x402.amount || 0;
   const testnet = x402.testnet ?? true;
   // const paymentChain = testnet ? baseSepolia : base;
-  const paymentChain = etherlinkTestnet;
+  const paymentChain = hederaTestnet;
   // const chainName = testnet ? "Base Sepolia" : "Base";
-  const chainName = "Etherlink Testnet";
+  const chainName = "Hedera Testnet";
   // const network = testnet ? "base-sepolia" : "base";
-  const network = "etherlink-testnet";
+  const network = "hedera-testnet";
   const showOnramp = Boolean(!testnet && isConnected && x402.sessionTokenEndpoint);
 
   useEffect(() => {
