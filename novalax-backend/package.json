@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "bot:dev": "bun --watch src/app.ts",
+    "bot:dev": "bun --watch src/bot.ts",
     "dev": "bun --watch src/index.ts"
   },
   "dependencies": {
