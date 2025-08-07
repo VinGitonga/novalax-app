@@ -1,0 +1,13 @@
+packages:
+  - packages/*
+  - examples/facilitator
+  - examples/**/*
+  - site
+ignoredBuiltDependencies:
+  - esbuild
+onlyBuiltDependencies:
+  - bigint-buffer
+  - bufferutil
+  - keccak
+  - sharp
+  - utf-8-validate

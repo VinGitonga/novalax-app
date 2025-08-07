@@ -1,0 +1,11 @@
+onlyBuiltDependencies:
+  - '@heroui/shared-utils'
+  - '@reown/appkit'
+  - '@swc/core'
+  - '@tailwindcss/oxide'
+  - bufferutil
+  - esbuild
+  - keccak
+  - protobufjs
+  - secp256k1
+  - utf-8-validate

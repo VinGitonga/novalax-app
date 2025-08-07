@@ -1,0 +1,45 @@
+{
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+		"target": "ES2022",
+		"useDefineForClassFields": true,
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"skipLibCheck": true,
+
+		/* Bundler mode */
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": true,
+		"moduleDetection": "force",
+		"noEmit": true,
+		"jsx": "react-jsx",
+
+		/* Linting */
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"erasableSyntaxOnly": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedSideEffectImports": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"x402": ["x402-typescript/packages/x402/src"],
+			"x402/*": ["x402-typescript/packages/x402/src/*"],
+			"x402-express": ["x402-typescript/packages/x402-express/src"],
+			"x402-express/*": ["x402-typescript/packages/x402-express/src/*"],
+			"x402-hono": ["x402-typescript/packages/x402-hono/src"],
+			"x402-hono/*": ["x402-typescript/packages/x402-hono/src/*"],
+			"x402-next": ["x402-typescript/packages/x402-next/src"],
+			"x402-next/*": ["x402-typescript/packages/x402-next/src/*"],
+			"x402-fetch": ["x402-typescript/packages/x402-fetch/src"],
+			"x402-fetch/*": ["x402-typescript/packages/x402-fetch/src/*"],
+			"x402-axios": ["x402-typescript/packages/x402-axios/src"],
+			"x402-axios/*": ["x402-typescript/packages/x402-axios/src/*"],
+			"@coinbase/x402": ["x402-typescript/packages/coinbase-x402/src"],
+			"@coinbase/x402/*": ["x402-typescript/packages/coinbase-x402/src/*"]
+		}
+	},
+	"include": ["src"]
+}
