@@ -95,7 +95,7 @@ const LandingPage = () => {
 						/>
 						<FeatureCard title="Simple & Secure Integration" description="No complex blockchain knowledge is required to accept on-chain payments." icon={<TbMoneybag className="w-6 h-6" />} />
 						<FeatureCard
-							title="Powered by Etherlink"
+							title="Powered by Hedera"
 							description="Our platform is designed to handle payments with a focus on fast and low-cost transactions on the Etherlink network"
 							icon={<TbBox className="w-6 h-6" />}
 						/>
@@ -127,7 +127,7 @@ const LandingPage = () => {
 				</div>
 				<div className="flex flex-col items-center space-y-8 z-20 relative">
 					<h1 className="text-3xl font-semibold">Ready to Start?</h1>
-					<p className="text-lg">Connect your wallet and join the Novix Pay revolution today!</p>
+					<p className="text-lg">Connect your wallet and join the Novalax revolution today!</p>
 					<ConnectBtn />
 					<hr className="border-white w-full" />
 				</div>
