@@ -12,9 +12,12 @@ import { recurringPaymentABI } from "@/contracts/abi";
 import { CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS } from "@/constants";
 import useSubscriptionUtils, { type TCreateSubscription } from "@/hooks/useSubscriptionUtils";
 import { hederaTestnet } from "viem/chains";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
 import ConnectBtn from "@/components/web3/ConnectBtn";
 import GetUSDCTokensBtn from "@/components/GetUSDCTokensBtn";
+import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
+import { wagmiAdapter } from "@/helpers/config";
+import { usdcABI } from "@/contracts/usdc-abi";
 
 const publicClient = createPublicClient({ chain: hederaTestnet, transport: http() }).extend(publicActions);
 
@@ -36,8 +39,10 @@ const RecurringPaymentCheckout = () => {
 	const [usdcBalance, setUsdcBalance] = useState<string>("0");
 	const [isValidParams, setIsValidParams] = useState<boolean>(true);
 	const [autoApprove, setAutoApprove] = useState<boolean>(false);
+	const [isProcessing, setIsProcessing] = useState<boolean>(false);
+	const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+	const [paymentTx, setPaymentTx] = useState<string>("");
 
-	const { data: hash, writeContract, isPending: isTransactionPending, error } = useWriteContract();
 	const { createSubscription } = useSubscriptionUtils();
 
 	const copyPaymentLink = () => {
@@ -99,6 +104,8 @@ const RecurringPaymentCheckout = () => {
 			return;
 		}
 
+		setIsProcessing(true);
+
 		const dueDateUnix = getUnixTime(new Date(dueDate));
 		const dueDateBigInt = BigInt(dueDateUnix);
 		const amtInDecimals = parseUnits(amount, 6);
@@ -107,12 +114,28 @@ const RecurringPaymentCheckout = () => {
 
 		const computedInterval = BigInt(interval);
 
-		writeContract({
+		const result = await writeContract(wagmiAdapter.wagmiConfig, {
+			abi: usdcABI,
+			address: USDC_CONTRACT_ADDRESS,
+			functionName: "approve",
+			args: [CONTRACT_ADDRESS, amtInDecimals],
+		});
+
+		await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {
+			hash: result,
+			confirmations: 1,
+		});
+
+		const result2 = await writeContract(wagmiAdapter.wagmiConfig, {
 			address: CONTRACT_ADDRESS,
 			abi: recurringPaymentABI,
 			functionName: "schedulePayment",
 			args: [targetWallet as `0x${string}`, amtInDecimals, USDC_CONTRACT_ADDRESS, dueDateBigInt, true, computedInterval],
 		});
+		const { transactionHash } = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: result2 });
+		setPaymentTx(transactionHash);
+		setPaymentSuccess(true);
+		setIsProcessing(false);
 	};
 
 	// Validate search params on component mount
@@ -203,8 +226,6 @@ const RecurringPaymentCheckout = () => {
 		}
 	};
 
-	const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: hash });
-
 	useEffect(() => {
 		async function saveRecurringPayment() {
 			const { interval, nextDueDate } = computeInterval(frequency as any, dueDate);
@@ -217,19 +238,17 @@ const RecurringPaymentCheckout = () => {
 				dueDate: nextDueDate,
 				isRecurring: true,
 				interval: interval,
-				tx: hash,
+				tx: paymentTx,
 				tg_name: tg_username,
 				tg_id: tg_id,
 			} satisfies TCreateSubscription;
 
 			const {} = await tryCatch(createSubscription(dataToSave));
 		}
-		if (isConfirmed) {
+		if (paymentSuccess) {
 			saveRecurringPayment();
 		}
-	}, [isConfirmed]);
-
-    console.log('Erroor----', error)
+	}, [paymentSuccess]);
 
 	if (!isValidParams) {
 		return (
@@ -250,7 +269,7 @@ const RecurringPaymentCheckout = () => {
 		);
 	}
 
-	if (isConfirmed) {
+	if (paymentSuccess) {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
 				<Card className="w-full max-w-md bg-transparent">
@@ -331,7 +350,7 @@ const RecurringPaymentCheckout = () => {
 												}}>
 												<CopyIcon className="h-4 w-4" />
 											</Button>
-											<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://testnet.explorer.etherlink.com/address/${targetWallet}`, "_blank")}>
+											<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://hashscan.io/testnet/account/${targetWallet}`, "_blank")}>
 												<ExternalLinkIcon className="h-4 w-4" />
 											</Button>
 										</div>
@@ -501,15 +520,9 @@ const RecurringPaymentCheckout = () => {
 								</div>
 
 								<div className="space-y-3">
-									<Button size="lg" color="secondary" onPress={onPay} isLoading={isTransactionPending || !isConnected || hasInsufficientBalance} isDisabled={isTransactionPending} className="w-full">
-										{isTransactionPending ? "Processing..." : isRecurring ? `Setup ${getFrequencyText(frequency)} Payment` : `Pay ${formatAmount(amount)}`}
+									<Button size="lg" color="secondary" onPress={onPay} isLoading={isProcessing || !isConnected || hasInsufficientBalance} isDisabled={isProcessing} className="w-full">
+										{isProcessing ? "Processing..." : isRecurring ? `Setup ${getFrequencyText(frequency)} Payment` : `Pay ${formatAmount(amount)}`}
 									</Button>
-									{isConfirming && (
-										<div className="text-xs text-muted-foreground text-center">
-											<p>Transaction is being confirmed, please wait...</p>
-										</div>
-									)}
-
 									<div className="text-xs text-muted-foreground text-center">
 										<p>This payment will be sent to:</p>
 										<p className="font-mono text-xs break-all mt-1">
@@ -520,7 +533,7 @@ const RecurringPaymentCheckout = () => {
 								</div>
 							</CardBody>
 							<CardFooter>
-								<div className="text-xs text-muted-foreground text-center w-full">Powered by Novix Pay with x402 • Secure USDC payments</div>
+								<div className="text-xs text-muted-foreground text-center w-full">Powered by Novalax with x402 • Secure USDC payments</div>
 							</CardFooter>
 						</Card>
 					</div>

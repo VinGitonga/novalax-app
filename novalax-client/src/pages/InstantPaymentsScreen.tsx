@@ -328,7 +328,7 @@ const InstantPayments = () => {
 								</div>
 							</CardBody>
 							<CardFooter>
-								<div className="text-xs text-muted-foreground text-center w-full">Powered by Novix Pay with x402 • Secure USDC payments</div>
+								<div className="text-xs text-muted-foreground text-center w-full">Powered by Novalax with x402 • Secure USDC payments</div>
 							</CardFooter>
 						</Card>
 					</div>

@@ -290,7 +290,7 @@ const PaymentCheckout = () => {
 								</Button>
 							</CardBody>
 							<CardFooter>
-								<div className="text-xs text-muted-foreground text-center">Powered by Novix Pay with x402 • Secure USDC payments</div>
+								<div className="text-xs text-muted-foreground text-center">Powered by Novalax with x402 • Secure USDC payments</div>
 							</CardFooter>
 						</Card>
 					</div>

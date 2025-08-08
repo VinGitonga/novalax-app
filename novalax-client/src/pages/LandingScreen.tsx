@@ -32,7 +32,7 @@ const LandingPage = () => {
 	const navigate = useNavigate();
 
 	const openTelegram = () => {
-		window.open("https://t.me/NovixPayBot", "_blank");
+		window.open("https://t.me/novalax_bot", "_blank");
 	};
 	return (
 		<div className="min-h-screen overflow-y-auto w-screen text-white bg-[#130D26] pt-4">

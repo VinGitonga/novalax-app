@@ -198,6 +198,6 @@ export const accessPremiumFileTool = tool(
 		name: "accessPremiumFile",
 		description:
 			"This tool processes payment for premium file access and then retrieves the file URL. It first calls the payment endpoint to process the X402 payment, then calls the document data endpoint to get the actual file URL.",
-		schema: z.object({ url_link: z.string().describe("URL link in Novix platform to access the file item") }),
+		schema: z.object({ url_link: z.string().describe("URL link in Novalax platform to access the file item") }),
 	}
 );

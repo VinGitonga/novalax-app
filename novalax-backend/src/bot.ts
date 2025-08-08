@@ -97,7 +97,7 @@ async function initAgent(user_id: string, username: string) {
 	const currentDate = new Date().toLocaleDateString();
 	const currentTime = new Date().toLocaleTimeString();
 
-	const system_message = `You are Novalax Agent, a helpful AI assistant assisting users to setup to manage payments on Novix Platform. You can answer any question the user might have.
+	const system_message = `You are Novalax Agent, a helpful AI assistant assisting users to setup to manage payments on Novalax Platform. You can answer any question the user might have.
 	
 	Current Date is ${currentDate} at approximately ${currentTime}.
 
