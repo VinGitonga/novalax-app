@@ -1,6 +1,6 @@
 import { DataTable } from "@/components/home/data-table";
 import { SiteHeader } from "@/components/layouts/site-header";
-import { CONTRACT_ADDRESS } from "@/constants";
+import { CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS } from "@/constants";
 import { recurringPaymentABI } from "@/contracts/abi";
 import { addToast, Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
 import data from "@/data/data.json";
@@ -15,8 +15,10 @@ import AppInput from "@/components/forms/AppInput";
 import { WalletIcon } from "lucide-react";
 import AppDatePicker from "@/components/forms/AppDatePicker";
 import AppRadioGroup from "@/components/forms/AppRadioGroup";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
+import { wagmiAdapter } from "@/helpers/config";
+import { usdcABI } from "@/contracts/usdc-abi";
 
 const dateSchema = z.custom<CalendarDate>((val) => val instanceof CalendarDate, { message: "Invalid Date" });
 
@@ -62,8 +64,10 @@ const Subscriptions = () => {
 };
 
 const SchedulePaymentModal = () => {
-	const account = useAccount();
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+	const [isProcessing, setIsProcessing] = useState<boolean>(false);
+	const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+	const [paymentTx, setPaymentTx] = useState<string>("");
 
 	const formMethods = useForm<z.infer<typeof formObject>>({
 		resolver: zodResolver(formObject),
@@ -81,10 +85,6 @@ const SchedulePaymentModal = () => {
 		control,
 	} = formMethods;
 
-	const { data: hash, writeContract, isPending: isTransactionPending, error } = useWriteContract();
-
-	const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: hash });
-
 	useEffect(() => {
 		async function onSuccessConfirmation() {
 			const onClickView = (hash: string) => {
@@ -95,37 +95,57 @@ const SchedulePaymentModal = () => {
 				title: "Payment scheduled successfully",
 				color: "success",
 				endContent: (
-					<Button color="secondary" size="sm" variant="flat" onPress={() => onClickView(hash!)}>
+					<Button color="secondary" size="sm" variant="flat" onPress={() => onClickView(paymentTx!)}>
 						View Transaction
 					</Button>
 				),
 			});
 		}
-		if (isConfirmed) {
+		if (paymentSuccess) {
 			onSuccessConfirmation();
 			onClose();
 		}
-	}, [isConfirmed]);
+	}, [paymentSuccess]);
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
 			const dueDateUnix = Math.floor((Date.now() + 3 * 60 * 1000) / 1000);
 			const amtInDecimals = ethers.parseUnits(String(data.amount), 6); // USDT has 6 decimals
 
+			setIsProcessing(true);
+
 			console.log("Submitting with:", { provider: data.provider, amount: amtInDecimals.toString(), dueDateUnix });
 
-			writeContract({
+			// approve spending
+			const result = await writeContract(wagmiAdapter.wagmiConfig, {
+				abi: usdcABI,
+				address: USDC_CONTRACT_ADDRESS,
+				functionName: "approve",
+				args: [CONTRACT_ADDRESS, amtInDecimals],
+			});
+
+			await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {
+				hash: result,
+				confirmations: 1,
+			});
+
+			// now execute the transaction
+			const result2 = await writeContract(wagmiAdapter.wagmiConfig, {
 				address: CONTRACT_ADDRESS,
 				abi: recurringPaymentABI,
 				functionName: "schedulePayment",
 				args: [data.provider as `0x${string}`, amtInDecimals, data.payWith as `0x${string}`, BigInt(dueDateUnix), false, BigInt(0)],
 			});
+
+			const { transactionHash } = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: result2 });
+			setPaymentTx(transactionHash);
+			setPaymentSuccess(true);
+			setIsProcessing(false);
 		} catch (err) {
 			console.error("Error:", err);
 		}
 	});
 
-	console.log('Error', error)
 
 	return (
 		<>
@@ -154,7 +174,7 @@ const SchedulePaymentModal = () => {
 									<Button color="danger" variant="flat" type="button" onPress={onClose}>
 										Close
 									</Button>
-									<Button color="primary" type="submit" isLoading={isTransactionPending} isDisabled={isTransactionPending}>
+									<Button color="primary" type="submit" isLoading={isProcessing} isDisabled={isProcessing}>
 										Schedule
 									</Button>
 								</ModalFooter>
