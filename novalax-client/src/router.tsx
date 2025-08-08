@@ -5,6 +5,7 @@ import InstantPayments from "./pages/InstantPaymentsScreen";
 import LandingPage from "./pages/LandingScreen";
 import PaymentCheckout from "./pages/PaymentCheckout";
 import RecurringPaymentCheckout from "./pages/RecurringPaymentCheckout";
+import AppLayout from "./layouts/AppLayout";
 
 const router = createBrowserRouter([
 	{
@@ -18,6 +19,32 @@ const router = createBrowserRouter([
 			{
 				path: "/home",
 				element: <HomeScreen />,
+			},
+			{
+				path: "app",
+				element: <AppLayout />,
+				children: [
+					{
+						path: "",
+						element: <Dashboard />,
+					},
+					{
+						path: "subscriptions",
+						element: <Subscriptions />,
+					},
+					{
+						path: "plans",
+						element: <PlansPage />,
+					},
+					{
+						path: "files",
+						element: <PremiumFiles />,
+					},
+					{
+						path: "payments",
+						element: <CompanyPayments />
+					}
+				],
 			},
 			{
 				path: "make-payments/:businessId/:planId",
