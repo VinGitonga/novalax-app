@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { WALLET_PRIVATE_KEY } from "src/constants";
+import { HEDERA_PRIVATE_KEY, WALLET_PRIVATE_KEY } from "src/constants";
 import { createPublicClient, createWalletClient, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { PaymentPayload, PaymentPayloadSchema, PaymentRequirements, PaymentRequirementsSchema } from "x402/types";
 import { settle, verify } from "x402/facilitator";
 import { hederaTestnet } from "viem/chains";
 
-const PRIVATE_KEY = `0x${WALLET_PRIVATE_KEY}`;
+const PRIVATE_KEY = `0x${HEDERA_PRIVATE_KEY}`;
 
 const facilitatorRouter = Router();
 

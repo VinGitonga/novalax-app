@@ -70,7 +70,7 @@ const InstantPayments = () => {
 		const payReqs = selectPaymentRequirements(paymentRequirements.flat(), "etherlink-testnet", "exact");
 		const validPaymentRequirements = ensureValidAmount(payReqs);
 		const paymentPayload = await exact.evm.createPayment(walletClient as any, 1, validPaymentRequirements);
-
+		
 		const payment: string = exact.evm.encodePayment(paymentPayload);
 
 		const response = await fetch(`${API_BASE_URL}/api/${IApiEndpoint.MAKE_INSTANT_PAYMENT}?account=${targetWallet}&amt=${amount}`, {

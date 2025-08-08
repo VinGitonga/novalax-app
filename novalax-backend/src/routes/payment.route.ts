@@ -8,5 +8,6 @@ paymentRouter.get("/pay-plan", paymentController.makePlanPayments);
 paymentRouter.get("/get/instant/payment-reqs", paymentController.getInstantPaymentsRequirements);
 paymentRouter.get("/pay-instant", paymentController.payInstantPayment);
 paymentRouter.get("/pay-document", paymentController.payPremiumDocument);
+paymentRouter.get("/pay-axios", paymentController.axiosTestRun);
 
 export default paymentRouter;

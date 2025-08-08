@@ -4,6 +4,12 @@ import { morganMiddleware } from "./middlewares/morgan.middleware";
 import DatabaseConnection from "./db/connect";
 import { logger } from "./logger/winston";
 import { APP_PORT } from "./constants";
+import accountRouter from "./routes/account.route";
+import planRouter from "./routes/plan.route";
+import paymentRouter from "./routes/payment.route";
+import usdcRouter from "./routes/usdc-test.route";
+import subscriptionRouter from "./routes/subscription.route";
+import documentsRouter from "./routes/documents.route";
 
 const app = express();
 
@@ -29,6 +35,12 @@ async function main() {
 	app.get("/", (req, res) => {
 		res.send("Hi 👋 Novalax Peps");
 	});
+	app.use("/api/accounts", accountRouter);
+	app.use("/api/plans", planRouter)
+	app.use("/api/payments", paymentRouter)
+	app.use("/api/usdc-test", usdcRouter)
+	app.use("/api/subscriptions", subscriptionRouter)
+	app.use("/api/documents", documentsRouter)
 
     app.listen(APP_PORT, () => {
 		logger.info(`Server started at http://localhost:${APP_PORT}`);

@@ -43,8 +43,8 @@ function createExactPaymentRequirements(price: Price, network: Network, resource
 
 	const { maxAmountRequired, asset } = atomicAmountForAsset;
 
-	// Fix the USDC name for Etherlink testnet
-	const usdcName = network === "etherlink-testnet" ? "USD Coin" : asset.eip712.name;
+	// Fix the USDC name for Hedera testnet
+	const usdcName = network === "hedera-testnet" ? "USD Coin" : asset.eip712.name;
 
 	return {
 		scheme: "exact",
@@ -81,7 +81,7 @@ async function getPlanPaymentRequirements(req: Request, res: ExpressResponse) {
 
 	const resource = `${API_BASE_URL}/payments/pay-plan?plan=${planDetails.uniqueId}` as Resource;
 
-	const paymentReqs = [createExactPaymentRequirements(planDetails.price, "etherlink-testnet", resource, account.wallet_address, `Pay for Plan : ${planDetails.title}`)];
+	const paymentReqs = [createExactPaymentRequirements(planDetails.price, "hedera-testnet", resource, account.wallet_address, `Pay for Plan : ${planDetails.title}`)];
 
 	res.status(200).json({ status: "success", data: { paymentRequirements: paymentReqs, planDetails }, msg: "Plan payment requirements generated" });
 }
@@ -194,7 +194,7 @@ async function makePlanPayments(req: Request, res: ExpressResponse) {
 	const price = planDetails.price;
 	const resource = `${req.protocol}://${req.headers.host}${req.originalUrl}` as Resource;
 
-	const paymentRequirements = [createExactPaymentRequirements(price, "etherlink-testnet", resource, (planDetails.account as IAccount).wallet_address, `Pay for Plan : ${planDetails.title}`)];
+	const paymentRequirements = [createExactPaymentRequirements(price, "hedera-testnet", resource, (planDetails.account as IAccount).wallet_address, `Pay for Plan : ${planDetails.title}`)];
 
 	const isValid = await verifyPayment(req, res, paymentRequirements);
 
@@ -253,7 +253,7 @@ async function getInstantPaymentsRequirements(req: Request, res: ExpressResponse
 
 	const resource = `${API_BASE_URL}/payments/pay-instant?account=${account}&amt=${amt}` as Resource;
 
-	const paymentReqs = [createExactPaymentRequirements(parseFloat(amt as string), "etherlink-testnet", resource, account as string, `Instant payment`)];
+	const paymentReqs = [createExactPaymentRequirements(parseFloat(amt as string), "hedera-testnet", resource, account as string, `Instant payment`)];
 
 	res.status(200).json({ status: "success", data: { paymentRequirements: paymentReqs } });
 }
@@ -265,7 +265,7 @@ async function payInstantPayment(req: Request, res: ExpressResponse) {
 
 	const resource = `${req.protocol}://${req.headers.host}${req.originalUrl}` as Resource;
 
-	const paymentRequirements = [createExactPaymentRequirements(amount, "etherlink-testnet", resource, account as string, `Instant payment`)];
+	const paymentRequirements = [createExactPaymentRequirements(amount, "hedera-testnet", resource, account as string, `Instant payment`)];
 
 	const isValid = await verifyPayment(req, res, paymentRequirements);
 
@@ -330,7 +330,7 @@ async function payPremiumDocument(req: Request, res: ExpressResponse) {
 
 	const resource = `${req.protocol}://${req.headers.host}${req.originalUrl}` as Resource;
 
-	const paymentRequirements = [createExactPaymentRequirements(price, "etherlink-testnet", resource, (documentItem.account as IAccount).wallet_address, `Pay for Plan : ${documentItem.name}`)];
+	const paymentRequirements = [createExactPaymentRequirements(price, "hedera-testnet", resource, (documentItem.account as IAccount).wallet_address, `Pay for Plan : ${documentItem.name}`)];
 
 	const isValid = await verifyPayment(req, res, paymentRequirements);
 
@@ -373,4 +373,39 @@ async function payPremiumDocument(req: Request, res: ExpressResponse) {
 	}
 }
 
-export default { getPaymentsByPayTo, getPlanPaymentRequirements, makePlanPayments, getInstantPaymentsRequirements, payInstantPayment, payPremiumDocument };
+async function axiosTestRun(req: Request, res: ExpressResponse) {
+	const resource = `${req.protocol}://${req.headers.host}${req.originalUrl}` as Resource;
+
+	const price = 10;
+
+	const paymentRequirements = [createExactPaymentRequirements(price, "hedera-testnet", resource, "0x68EcA16c451C55fC4613a2f982090b65234C8D8a", `Pay for item`)];
+
+	const isValid = await verifyPayment(req, res, paymentRequirements);
+
+	if (!isValid) return;
+	try {
+		const settleResponse = await settle(exact.evm.decodePayment(req.header("X-PAYMENT")!), paymentRequirements[0]);
+
+		const responseHeader = settleResponseHeader(settleResponse);
+
+		res.setHeader("X-PAYMENT-RESPONSE", responseHeader);
+
+		res.status(200).json({
+			status: "success",
+			data: {},
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(402).json({
+			status: "error",
+			msg: "Unable to settle the payment at the moment, please try again.",
+			errors: {
+				x402Version,
+				error: err,
+				accepts: paymentRequirements,
+			},
+		});
+	}
+}
+
+export default { getPaymentsByPayTo, getPlanPaymentRequirements, makePlanPayments, getInstantPaymentsRequirements, payInstantPayment, payPremiumDocument, axiosTestRun };

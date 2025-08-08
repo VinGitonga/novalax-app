@@ -217,8 +217,10 @@ export async function settle<transport extends Transport, chain extends Chain>(
       signature,
     ],
     chain: wallet.chain as Chain,
+    gas: 300000n, // Provide explicit gas limit to bypass estimation
   });
 
+  // @ts-expect-error error managemenr
   const receipt = await wallet.waitForTransactionReceipt({ hash: tx });
 
   if (receipt.status !== "success") {

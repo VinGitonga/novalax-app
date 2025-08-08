@@ -15,4 +15,6 @@ export const PINATA_GATEWAY="green-favourable-earthworm-130.mypinata.cloud"
 export const PINATA_API_KEY = process.env.PINATA_API_KEY
 export const PINATA_API_SECRET = process.env.PINATA_API_SECRET
 export const PINATA_JWT = process.env.PINATA_JWT
+export const HEDERA_PRIVATE_KEY = process.env.HEDERA_PRIVATE_KEY
+
 
