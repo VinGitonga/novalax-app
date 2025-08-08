@@ -2,26 +2,21 @@ import { DataTable } from "@/components/home/data-table";
 import { SiteHeader } from "@/components/layouts/site-header";
 import { CONTRACT_ADDRESS } from "@/constants";
 import { recurringPaymentABI } from "@/contracts/abi";
-import { useThirdwebStore } from "@/hooks/store/useThirdwebStore";
 import { addToast, Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
-import { defineChain, getContract, prepareContractCall, readContract, sendAndConfirmTransaction, waitForReceipt, type ThirdwebClient } from "thirdweb";
-import { useActiveAccount } from "thirdweb/react";
-import { etherlinkTestnet } from "viem/chains";
 import data from "@/data/data.json";
 import { useAccountStore } from "@/hooks/store/useAccountStore";
-import type { Account } from "thirdweb/wallets";
 import { FormProvider, useForm } from "react-hook-form";
 import z from "zod";
 import { ethers } from "ethers";
 import type { IOption } from "@/types/Option";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
-import { getApprovalForTransaction } from "thirdweb/extensions/erc20";
-import { extractErrorDetails } from "@/DecodeEvmTransactionLogsArgs";
 import AppInput from "@/components/forms/AppInput";
 import { WalletIcon } from "lucide-react";
 import AppDatePicker from "@/components/forms/AppDatePicker";
 import AppRadioGroup from "@/components/forms/AppRadioGroup";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useEffect } from "react";
 
 const dateSchema = z.custom<CalendarDate>((val) => val instanceof CalendarDate, { message: "Invalid Date" });
 
@@ -35,33 +30,17 @@ const formObject = z.object({
 });
 
 const payWithOptions = [
-	{
-		label: "USDT",
-		value: "0xf7f007dc8Cb507e25e8b7dbDa600c07FdCF9A75B",
-	},
+	// {
+	// 	label: "USDT",
+	// 	value: "0xf7f007dc8Cb507e25e8b7dbDa600c07FdCF9A75B",
+	// },
 	{
 		label: "USDC",
-		value: "0xe3A01f57C76B6bdf926618C910E546F794ff6dd4",
+		value: "0xAc5b91246d0E22bb67A6b1e6Db5c05A7bB36d63d",
 	},
 ] satisfies IOption[];
 
 const Subscriptions = () => {
-	const activeAccount = useActiveAccount();
-
-	const { client } = useThirdwebStore();
-	const getUserPayments = async () => {
-		const contract = getContract({
-			abi: recurringPaymentABI,
-			client: client!,
-			chain: defineChain(etherlinkTestnet.id),
-			address: CONTRACT_ADDRESS,
-		});
-
-		const resp = await readContract({ contract, method: "getUserPayments", params: [activeAccount?.address!, false] });
-
-		console.log("resp", resp);
-	};
-
 	const { account } = useAccountStore();
 
 	return (
@@ -71,8 +50,8 @@ const Subscriptions = () => {
 				<div className="@container/main flex flex-1 flex-col gap-2">
 					<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-3">
 						<div className="flex items-center justify-between">
-							{account && !account.isProvider && <SchedulePaymentModal client={client!} account={activeAccount!} />}
-							<Button onPress={getUserPayments}>Get Mine</Button>
+							{account && !account.isProvider && <SchedulePaymentModal />}
+							<Button>Get Mine</Button>
 						</div>
 						<DataTable data={data} />
 					</div>
@@ -82,7 +61,8 @@ const Subscriptions = () => {
 	);
 };
 
-const SchedulePaymentModal = ({ client, account }: { client: ThirdwebClient; account: Account }) => {
+const SchedulePaymentModal = () => {
+	const account = useAccount();
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
 	const formMethods = useForm<z.infer<typeof formObject>>({
@@ -101,81 +81,51 @@ const SchedulePaymentModal = ({ client, account }: { client: ThirdwebClient; acc
 		control,
 	} = formMethods;
 
-	const onSubmit = handleSubmit(async (data) => {
-		try {
-			const contract = getContract({
-				abi: recurringPaymentABI,
-				client,
-				chain: defineChain(etherlinkTestnet.id),
-				address: CONTRACT_ADDRESS,
-			});
+	const { data: hash, writeContract, isPending: isTransactionPending, error } = useWriteContract();
 
-			const dueDateUnix = Math.floor((Date.now() + 3 * 60 * 1000) / 1000);
-			const amtInDecimals = ethers.parseUnits(String(data.amount), 6); // USDT has 6 decimals
+	const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: hash });
 
-			console.log("Submitting with:", { provider: data.provider, amount: amtInDecimals.toString(), dueDateUnix });
-
-			// Prepare the schedulePayment transaction
-			const preparedContractCall = prepareContractCall({
-				contract,
-				method: "schedulePayment",
-				params: [data.provider, amtInDecimals, data.payWith, BigInt(dueDateUnix), false, BigInt(0)],
-				erc20Value: {
-					amountWei: amtInDecimals,
-					tokenAddress: data.payWith,
-				},
-			});
-
-			// Check if approval is needed for USDT
-			const approvalTx = await getApprovalForTransaction({
-				transaction: preparedContractCall as any,
-				account,
-			});
-
-			if (approvalTx) {
-				console.log("Approval needed, sending approval transaction...");
-				const approvalReceipt = await sendAndConfirmTransaction({
-					transaction: approvalTx,
-					account,
-				});
-				console.log("Approval transaction receipt:", approvalReceipt);
-			} else {
-				console.log("No approval needed (already sufficient allowance).");
-			}
-
-			// Send the schedulePayment transaction
-			const transaction = await sendAndConfirmTransaction({
-				transaction: preparedContractCall,
-				account,
-			});
-
-			const receipt = await waitForReceipt({
-				client,
-				chain: defineChain(etherlinkTestnet.id),
-				transactionHash: transaction.transactionHash,
-			});
-
+	useEffect(() => {
+		async function onSuccessConfirmation() {
 			const onClickView = (hash: string) => {
-				window.open(`https://testnet.explorer.etherlink.com/tx/${hash}`, "_blank");
+				window.open(`https://hashscan.io/testnet/transaction/${hash}`, "_blank");
 			};
 
 			addToast({
 				title: "Payment scheduled successfully",
 				color: "success",
 				endContent: (
-					<Button color="secondary" size="sm" variant="flat" onPress={() => onClickView(receipt.transactionHash)}>
+					<Button color="secondary" size="sm" variant="flat" onPress={() => onClickView(hash!)}>
 						View Transaction
 					</Button>
 				),
 			});
-
+		}
+		if (isConfirmed) {
+			onSuccessConfirmation();
 			onClose();
+		}
+	}, [isConfirmed]);
+
+	const onSubmit = handleSubmit(async (data) => {
+		try {
+			const dueDateUnix = Math.floor((Date.now() + 3 * 60 * 1000) / 1000);
+			const amtInDecimals = ethers.parseUnits(String(data.amount), 6); // USDT has 6 decimals
+
+			console.log("Submitting with:", { provider: data.provider, amount: amtInDecimals.toString(), dueDateUnix });
+
+			writeContract({
+				address: CONTRACT_ADDRESS,
+				abi: recurringPaymentABI,
+				functionName: "schedulePayment",
+				args: [data.provider as `0x${string}`, amtInDecimals, data.payWith as `0x${string}`, BigInt(dueDateUnix), false, BigInt(0)],
+			});
 		} catch (err) {
 			console.error("Error:", err);
-			const errorParsed = extractErrorDetails(err, recurringPaymentABI);
-			console.error("Parsed error:", errorParsed);
 		}
 	});
+
+	console.log('Error', error)
 
 	return (
 		<>
@@ -204,7 +154,7 @@ const SchedulePaymentModal = ({ client, account }: { client: ThirdwebClient; acc
 									<Button color="danger" variant="flat" type="button" onPress={onClose}>
 										Close
 									</Button>
-									<Button color="primary" type="submit">
+									<Button color="primary" type="submit" isLoading={isTransactionPending} isDisabled={isTransactionPending}>
 										Schedule
 									</Button>
 								</ModalFooter>
