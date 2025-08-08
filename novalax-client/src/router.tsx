@@ -6,6 +6,11 @@ import LandingPage from "./pages/LandingScreen";
 import PaymentCheckout from "./pages/PaymentCheckout";
 import RecurringPaymentCheckout from "./pages/RecurringPaymentCheckout";
 import AppLayout from "./layouts/AppLayout";
+import Dashboard from "./pages/Dashboard";
+import Subscriptions from "./pages/Subscriptions";
+import PlansPage from "./pages/PlansPage";
+import PremiumFiles from "./pages/PremiumFiles";
+import CompanyPayments from "./pages/CompanyPayments";
 
 const router = createBrowserRouter([
 	{
