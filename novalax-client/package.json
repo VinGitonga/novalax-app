@@ -25,6 +25,7 @@
     "@walletconnect/universal-provider": "2.21.5",
     "@walletconnect/utils": "2.19.1",
     "axios": "^1.11.0",
+    "date-fns": "^4.1.0",
     "ethers": "^6.13.5",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",

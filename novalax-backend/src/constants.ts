@@ -5,7 +5,7 @@ dotenv.config();
 export const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 export const APP_PORT = "8745";
 export const MONGODB_URI = process.env.MONGODB_URI;
-export const CONTRACT_ADDRESS = "0x33763D18a61f846F90aE610d6B699cd309dAc31E";
+export const CONTRACT_ADDRESS = "0x21192354B4443Fca534B65D81cd51929ffDBFfa0";
 export const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY;
 export const API_BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:8745/api" : "https://novalax_api.vingitonga.xyz/api";
 export const FACILITATOR_URL = process.env.NODE_ENV === "development" ? "http://localhost:6099" : "https://novalax_api_facilitator.vingitonga.xyz";
