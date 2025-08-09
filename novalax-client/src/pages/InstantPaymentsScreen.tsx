@@ -3,7 +3,8 @@ import { API_BASE_URL } from "@/constants";
 import { tryCatch } from "@/helpers/try-catch";
 import usePaymentsUtils from "@/hooks/usePaymentsUtils";
 import { formatAmount } from "@/lib/utils";
-import { IApiEndpoint } from "@/types/Api";
+import { IApiEndpoint, type IApiResponse } from "@/types/Api";
+import type { IPayment } from "@/types/Payment";
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Divider, Input } from "@heroui/react";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { ArrowLeftIcon, CheckCircleIcon, CopyIcon, CreditCardIcon, DollarSignIcon, WalletIcon, XCircleIcon, ExternalLinkIcon } from "lucide-react";
@@ -40,6 +41,7 @@ const InstantPayments = () => {
 	const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
 	const [isValidParams, setIsValidParams] = useState<boolean>(true);
 	const [paymentRequirements, setPaymentRequirements] = useState<PaymentRequirements[]>([]);
+	const [paymentTx, setPaymentTx] = useState<string>("");
 
 	const copyPaymentLink = () => {
 		navigator.clipboard.writeText(window.location.href);
@@ -67,10 +69,10 @@ const InstantPayments = () => {
 		setIsProcessing(true);
 
 		const walletClient = wagmiWalletClient?.extend(publicActions);
-		const payReqs = selectPaymentRequirements(paymentRequirements.flat(), "etherlink-testnet", "exact");
+		const payReqs = selectPaymentRequirements(paymentRequirements.flat(), "hedera-testnet", "exact");
 		const validPaymentRequirements = ensureValidAmount(payReqs);
 		const paymentPayload = await exact.evm.createPayment(walletClient as any, 1, validPaymentRequirements);
-		
+
 		const payment: string = exact.evm.encodePayment(paymentPayload);
 
 		const response = await fetch(`${API_BASE_URL}/api/${IApiEndpoint.MAKE_INSTANT_PAYMENT}?account=${targetWallet}&amt=${amount}`, {
@@ -83,6 +85,13 @@ const InstantPayments = () => {
 		if (!response.ok) {
 			toast.error("Payment failed to settle");
 			return;
+		}
+
+		const resp = (await response.json()) as IApiResponse<{ savedPayment: IPayment }>;
+
+		if (resp?.status === "success") {
+			const data = resp.data;
+			setPaymentTx(data?.savedPayment?.transaction!);
 		}
 
 		setPaymentSuccess(true);
@@ -154,6 +163,12 @@ const InstantPayments = () => {
 								<p className="text-sm text-muted-foreground">
 									To: {targetWallet.slice(0, 6)}...{targetWallet.slice(-4)}
 								</p>
+								<div className="flex items-center gap-2">
+									<p className="text-sm text-muted-foreground">View Transaction at:</p>
+									<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://hashscan.io/testnet/transaction/${paymentTx}`, "_blank")}>
+										<ExternalLinkIcon className="h-4 w-4" />
+									</Button>
+								</div>
 							</div>
 							<Button onPress={() => navigate("/")}>
 								<ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -220,7 +235,7 @@ const InstantPayments = () => {
 												}}>
 												<CopyIcon className="h-4 w-4" />
 											</Button>
-											<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://testnet.explorer.etherlink.com/address/${targetWallet}`, "_blank")}>
+											<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://hashscan.io/testnet/account/${targetWallet}`, "_blank")}>
 												<ExternalLinkIcon className="h-4 w-4" />
 											</Button>
 										</div>

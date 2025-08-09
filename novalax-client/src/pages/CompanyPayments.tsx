@@ -50,7 +50,7 @@ const CompanyPayments = () => {
 				return (
 					<div className="flex items-center gap-3">
 						<p>{sliceAddress(item.transaction)}</p>
-						<Button isIconOnly size="sm" color="secondary" variant="bordered" onPress={() => window.open(`https://testnet.explorer.etherlink.com/tx/${item.transaction}`)}>
+						<Button isIconOnly size="sm" color="secondary" variant="bordered" onPress={() => window.open(`https://hashscan.io/testnet/transaction/${item.transaction}`)}>
 							<ExternalLinkIcon className="w-4 h-4" />
 						</Button>
 					</div>

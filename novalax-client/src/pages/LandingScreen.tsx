@@ -96,7 +96,7 @@ const LandingPage = () => {
 						<FeatureCard title="Simple & Secure Integration" description="No complex blockchain knowledge is required to accept on-chain payments." icon={<TbMoneybag className="w-6 h-6" />} />
 						<FeatureCard
 							title="Powered by Hedera"
-							description="Our platform is designed to handle payments with a focus on fast and low-cost transactions on the Etherlink network"
+							description="Our platform is designed to handle payments with a focus on fast and low-cost transactions on the Hedera EVM network"
 							icon={<TbBox className="w-6 h-6" />}
 						/>
 						<FeatureCard
